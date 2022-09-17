@@ -1,0 +1,12 @@
+services:
+  database:
+    image: postgres:11.10
+    ports: 
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=bomaidea
+      - POSTGRES_PASSWORD=bomaidea
+volumes:
+  pgdata:
