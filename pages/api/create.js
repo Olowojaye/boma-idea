@@ -38,5 +38,20 @@ export default async function handler(req, res) {
   if (savedProject.length == 0) {
     return res.status(400).send('Error creating project');
   }
+
+  // Give creator all access permissions
+  const creatorPermissions = await access.createMany({
+    data: [
+      { project_id: savedProject.id, user_id: userId, permit: 'Read' },
+      { project_id: savedProject.id, user_id: userId, permit: 'Create' },
+      { project_id: savedProject.id, user_id: userId, permit: 'Update' },
+      { project_id: savedProject.id, user_id: userId, permit: 'Delete' },
+    ],
+  });
+
+  if (creatorPermissions.length == 0) {
+    return res.status(400).send('Error creating required permissions data');
+  }
+
   return res.status(200).json({ savedProject });
 }
