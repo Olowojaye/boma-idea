@@ -37,13 +37,12 @@ export default function ProjectView() {
     getUserPermissions();
   }, []);
 
-  const updateHandler = async () => {
+  const updateHandler = async (event) => {
+    event.preventDefault();
     if (state !== 'Open' && state !== 'Propose' && state !== 'Closed') {
       alert('Wrong Project State entered!');
       return;
     }
-
-    event.preventDefault();
     try {
       const { data } = await axios.post('/api/update', {
         userId: parseInt(Id),
@@ -89,14 +88,14 @@ export default function ProjectView() {
   };
 
   return (
-    <div>
-      <button className="block">
+    <div className='grid place-items-center'>
+      <button className="block my-2">
         <Link href="/view">
           <a>Return to projects list</a>
         </Link>
       </button>
       {!!proj.id && (
-        <div>
+        <div className='mb-2'>
           <div>User Id: {Id}</div>
           Project ID: {proj.id} <br />
           Project Name: {proj.name} <br />
@@ -106,9 +105,9 @@ export default function ProjectView() {
       )}
 
       {canUpdate && (
-        <button className='mr-2' onClick={() => setUpdateNow(true)}>Update project</button>
+        <button className='block mb-2' onClick={() => setUpdateNow(true)}>Update project</button>
       )}
-      {canDelete && <button onClick={deleteHandler}>Delete</button>}
+      {canDelete && <button className='bg-red-500' onClick={deleteHandler}>Delete</button>}
       {updateNow && (
         <form onSubmit={updateHandler}>
           <label className="block mt-2">

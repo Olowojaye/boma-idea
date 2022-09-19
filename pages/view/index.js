@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser } from '../../context/userContext';
 
 export default function View() {
@@ -10,6 +10,8 @@ export default function View() {
   const [name, setName] = useState('');
   const [state, setState] = useState('');
   const [date, setDate] = useState(new Date());
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [sortOrder, setSortOrder] = useState('');
 
   const getUser = async (event) => {
     event.preventDefault();
@@ -23,18 +25,19 @@ export default function View() {
         userId: parseInt(Id),
       });
       setProjects(data.result);
+      setFilteredProjects(data.result);
     } catch (err) {
       alert(err.response.data);
     }
   };
 
-  const createHandler = async () => {
+  const createHandler = async (event) => {
+    event.preventDefault();
     if (state !== 'Open' && state !== 'Propose' && state !== 'Closed') {
       alert('Wrong Project State entered!');
       return;
     }
 
-    event.preventDefault();
     try {
       const { data } = await axios.post('/api/create', {
         userId: parseInt(Id),
@@ -50,8 +53,44 @@ export default function View() {
       alert(err.response.data);
     }
   };
+
+  const handleFilter = (event) => {
+    const concern = event.target.value;
+    if (concern == 'all') {
+      setFilteredProjects(projects);
+    } else {
+      setFilteredProjects(projects.filter((item) => item.state == concern));
+    }
+  };
+
+  const handleSort = (a, b) => {
+    if (sortOrder == 'name') {
+      let fa = a.name.toLowerCase(),
+        fb = b.name.toLowerCase();
+
+      if (fa < fb) {
+        return -1;
+      }
+      if (fa > fb) {
+        return 1;
+      }
+      return 0;
+    } else if (sortOrder == 'date') {
+      let fa = a.date,
+        fb = b.date;
+
+      if (fa < fb) {
+        return -1;
+      }
+      if (fa > fb) {
+        return 1;
+      }
+      return 0;
+    }
+  };
+
   return (
-    <div>
+    <div className='grid place-items-center'>
       <h1 className="text-center text-3xl text-bold">View Page</h1>
       <form onSubmit={getUser}>
         <label>
@@ -61,18 +100,45 @@ export default function View() {
             onChange={(event) => setId(event.target.value)}
           />
         </label>
-        <button className='ml-2' disabled={Id == 0} type="Submit">
+        <button className="ml-2" disabled={Id == 0} type="Submit">
           Submit
         </button>
       </form>
       <div>
-        {projects.length !== 0 && (
+        <div className=" mt-2">
+          <select
+            className="select w-xs mb-2 shadow-sm bg-gray-50 text-blue-800 mr-2"
+            onChange={handleFilter}
+            defaultValue="default"
+          >
+            <option value="default" disabled>
+              Filter by state
+            </option>
+            <option value="Open">Open</option>
+            <option value="Propose">Propose</option>
+            <option value="Closed">Closed</option>
+            <option value="all">All categories</option>
+          </select>
+          <select
+            className="select w-xs mb-2 shadow-sm bg-gray-50 text-blue-800"
+            onChange={(event) => setSortOrder(event.target.value)}
+            defaultValue="default"
+          >
+            <option value="default" disabled>
+              Order by
+            </option>
+            <option value="name">Name</option>
+            <option value="date">Date</option>
+          </select>
+        </div>
+        {filteredProjects.length !== 0 && (
           <ul>
-            {projects.map((proj, index) => {
+            {filteredProjects.sort(handleSort).map((proj, index) => {
               return (
-                <li key={index.toString()}>
+                <li key={index.toString()} className="mb-2">
                   Project ID: {proj.id} <br />
                   Project Name: {proj.name} <br />
+                  Project State: {proj.state} <br />
                   Project Date: {proj.date.split('T')[0]} <br />
                   <button>
                     <Link href={`/view/${proj.id}`}>
